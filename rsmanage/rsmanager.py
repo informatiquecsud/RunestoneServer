@@ -435,6 +435,7 @@ def addinstructor(config, username, course):
     """
     Add an existing user as an instructor for a course
     """
+    print("trying to add user %s", username)
     eng = create_engine(config.dburl)
     res = eng.execute("select id from auth_user where username=%s", username).first()
     if res:
@@ -447,7 +448,7 @@ def addinstructor(config, username, course):
     if res:
         courseid = res[0]
     else:
-        print("Sorry, that course does not exist")
+        print("Sorry, the course %s does not exist", course)
         sys.exit(-1)
 
     # if needed insert a row into auth_membership

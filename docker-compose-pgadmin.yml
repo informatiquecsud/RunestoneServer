@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    links:
+      - db
+    ports:
+      - "9000:9000"
+    environment:
+      PGADMIN_LISTEN_PORT: '9000'
+      PGADMIN_DEFAULT_EMAIL: 'cedonner@gmail.com'
+      PGADMIN_DEFAULT_PASSWORD: 'maison321'
+    volumes:
+      - ./pgadmin/servers.json:/servers.json
