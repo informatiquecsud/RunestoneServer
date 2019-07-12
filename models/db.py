@@ -300,3 +300,17 @@ auth.settings.actions_disabled.append('register')
 auth.settings.actions_disabled.append('register')
 
 auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')

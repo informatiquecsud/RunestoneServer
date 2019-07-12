@@ -23,7 +23,53 @@ cd books
 git clone https://github.com/RunestoneInteractive/thinkcspy.git
 ```
 
-After cloning the book edit the pavement.py file.  It is **critical** that the `master_url` variable in that file is set correctly.  If you are running docker and doing your development on the same machine then `http://localhost` will work. If you are running docker on a remote host then make sure to set it to the name of the remote host. `master_url` is the URL that the API calls in the browser will use to connect to the server running in the docker container.
+After cloning the book edit the pavement.py file.  It is **critical** that the
+`master_url` variable in that file is set correctly.  If you are running docker
+and doing your development on the same machine then `http://localhost` will
+work. If you are running docker on a remote host then make sure to set it to the
+name of the remote host. `master_url` is the URL that the API calls in the
+browser will use to connect to the server running in the docker container.
+
+To add a new book of your own, a course with the corresponding name has to be
+inserted into the database upon container startup. This is all managed by the
+`docker/entrypoint.sh` shell script and the `rsmanage/initialize_tables.py`
+python script. You have to insert a new entry in this last
+`initialize_tables.py` script like so : 
+
+```python
+if db(db.courses.id > 0).isempty():
+    click.echo(message="Definining initial Courses",
+               file=None, nl=True, err=False, color='green')
+    # db.courses.insert(course_name='boguscourse', term_start_date=datetime.date(
+    #     2000, 1, 1))  # should be id 1
+    # db.courses.insert(course_name='thinkcspy', base_course='thinkcspy',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='pythonds', base_course='pythonds',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='overview', base_course='overview',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='pip2', base_course='pip2',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='apcsareview', base_course='apcsareview',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='StudentCSP', base_course='StudentCSP',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='TeacherCSP', base_course='TeacherCSP',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='JavaReview', base_course='apcsareview',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='publicpy3', base_course='pip2',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='fopp', base_course='fopp',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='cppds', base_course='cppds',
+    #                   term_start_date=datetime.date(2000, 1, 1))
+    # db.courses.insert(course_name='webfundamentals',
+    #                   base_course='webfundamentals', term_start_date=datetime.date(2000, 1, 1))
+    # TODO: add your own course here
+    db.courses.insert(course_name='doi', base_course='doi',
+                      term_start_date=datetime.date(2019, 9, 1))
+```
 
 ### 2. Add Users
 
