@@ -1,5 +1,11 @@
 COMPOSE = docker-compose -f docker-compose.yml -f docker-compose-pgadmin.yml
 
+start:
+	$(COMPOSE) start
+
+ngrok:
+	./ngrok.exe http 80
+
 stop:
 	$(COMPOSE) stop
 
@@ -21,6 +27,20 @@ logsf:
 
 pgadmin-restart:
 	$(COMPOSE) restart pgadmin
+
+runestone-rm:
+	$(COMPOSE) stop runestone
+	$(COMPOSE) rm -f runestone
+
+runestone-image: runestone-rm
+	docker build -t runestone/server .
+runestone-restart:
+	$(COMPOSE) stop runestone
+	$(COMPOSE) rm -f runestone
+	$(COMPOSE) up -d runestone
+runestone-exec-bash:
+	$(COMPOSE) exec runestone bash
+
 
 full-restart: stop rm up logsf
 

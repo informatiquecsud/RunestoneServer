@@ -18,6 +18,10 @@ ENV WEB2PY_PATH=${WEB2PY_PATH}
 ENV RUNESTONE_PATH=${WEB2PY_APPS_PATH}/runestone
 ENV BOOKS_PATH=${RUNESTONE_PATH}/books
 ENV WEB2PY_VERSION=2.18.4
+# to configure whether bypass admin security (local docker container for example)
+ENV WEB2PY_ADMIN_SECURITY_BYPASS=
+# admin passwd to enter admin interface, has to be specified at runtime
+ENV WEB2PY_PASSWORD=
 
 # Click needs these encodings for Python 3
 ENV LC_ALL=C.UTF-8
@@ -45,14 +49,14 @@ RUN apt-get update && \
     apt-get install -y eatmydata && \
     eatmydata apt-get update && echo "count 1" && \
     eatmydata apt-get install -y --no-install-recommends \
-        gcc \
-        git \
-        unzip \
-        emacs-nox \
-        less \
-        libfreetype6-dev postgresql-common postgresql postgresql-contrib \
-        libpq-dev libxml2-dev libxslt1-dev \
-        rsync wget nginx && \
+    gcc \
+    git \
+    unzip \
+    vim \
+    less \
+    libfreetype6-dev postgresql-common postgresql postgresql-contrib \
+    libpq-dev libxml2-dev libxslt1-dev \
+    rsync wget nginx && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # The rest could be done and ran under a regular (well, staff for installing under /usr/local) user
@@ -60,6 +64,7 @@ RUN useradd -s /bin/bash -M -g staff --home-dir ${WEB2PY_PATH} runestone && \
     mkdir -p /srv
 
 # Install additional components
+# RUN git clone https://github.com/informatiquecsud/web2py ${WEB2PY_PATH} && \
 RUN git clone https://github.com/web2py/web2py ${WEB2PY_PATH} && \
     cd ${WEB2PY_PATH} && \
     git submodule update --init --recursive

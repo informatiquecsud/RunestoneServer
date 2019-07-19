@@ -130,6 +130,19 @@ if [ -f "${RUNESTONE_PATH}/configs/students.csv" -a "${RUNESTONE_PATH}/configs/s
     touch sadd.stamp
 fi
 
+if [ "$WEB2PY_ADMIN_SECURITY_BYPASS" = 'true' ]; then
+    if [ "$WEB2PY_PASSWORD" == '' ]; then
+      echo "ERROR - WEB2PY_PASSWORD not specified"
+      exit 1
+    fi
+    echo "WARNING! - Admin Application Security over HTTP bypassed"
+    python -c "from gluon.main import save_password; save_password('$WEB2PY_PASSWORD',8080)"
+    sed -i "s/elif not request.is_local and not DEMO_MODE:/elif False:/" \
+      $WEB2PY_PATH/applications/admin/models/access.py
+    sed -i "s/is_local=(env.remote_addr in local_hosts and client == env.remote_addr)/is_local=True/" \
+      $WEB2PY_PATH/gluon/main.py
+fi
+
 # Uncomment for debugging
 # /bin/bash
 

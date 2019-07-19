@@ -16,6 +16,8 @@ services:
       - ./:/srv/web2py/applications/runestone
     links:
       - db
+    depends_on:
+    - "db"
     ports:
       - "80:80"
     environment:
@@ -28,3 +30,6 @@ services:
       DEV_DBURL: 'postgresql://runestone:${POSTGRES_PASSWORD}@db/runestone'
       TEST_DBURL: 'postgresql://runestone:${POSTGRES_PASSWORD}@db/runestone_test'
       RUNESTONE_HOST: '${RUNESTONE_HOST}'
+      WEB2PY_PASSWORD: 'maison'
+      WEB2PY_ADMIN_SECURITY_BYPASS: 'true'
+

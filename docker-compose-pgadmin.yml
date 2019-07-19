@@ -8,6 +8,8 @@ services:
       - db
     ports:
       - "9000:9000"
+    depends_on:
+    - "db"
     environment:
       PGADMIN_LISTEN_PORT: '9000'
       PGADMIN_DEFAULT_EMAIL: 'cedonner@gmail.com'

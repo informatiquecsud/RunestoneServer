@@ -440,7 +440,7 @@ def addinstructor(config, username, course):
     res = eng.execute("select id from auth_user where username=%s", username).first()
     if res:
         userid = res[0]
-    else:
+    else:                                                                                                   
         print("Sorry, that user does not exist")
         sys.exit(-1)
 

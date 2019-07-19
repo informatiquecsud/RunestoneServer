@@ -30,6 +30,35 @@ work. If you are running docker on a remote host then make sure to set it to the
 name of the remote host. `master_url` is the URL that the API calls in the
 browser will use to connect to the server running in the docker container.
 
+If there are problems to view the different dynamic components of the books
+(like active coding), disable dynamic course in the `pavement.py` file of the
+book with 
+
+```python
+template_args={'login_required': 'true',
+                'loglevel': 10,
+                'course_title': "DOI\\ :\\ Programmation", # Edit custom title here.
+                                                           # Don't forget the '\\' before  # each space or course won't
+                                                           # build
+                'python3': 'false',
+                'dburl': 'postgresql://runestone:runestone@localhost/runestone',
+                'default_ac_lang': 'python',
+                'jobe_server': 'http://jobe2.cosc.canterbury.ac.nz',
+                'proxy_uri_runs': '/jobe/index.php/restapi/runs/',
+                'proxy_uri_files': '/jobe/index.php/restapi/files/',
+                'downloads_enabled': 'true',
+                'enable_chatcodes': 'True',
+                'allow_pairs': 'True',
+                'dynamic_pages': False, # <============= THIS ONE SHOULD BE False
+                'use_services': True,   # <============= THIS ONE SHOULD BE True
+                'basecourse': project_name,
+                # If ``dynamic_pages`` is 'True', then the following values are ignored, since they're provided by the server.
+                'course_id': project_name,
+                'appname': 'runestone',
+                'course_url': master_url,
+                }
+```
+
 To add a new book of your own, a course with the corresponding name has to be
 inserted into the database upon container startup. This is all managed by the
 `docker/entrypoint.sh` shell script and the `rsmanage/initialize_tables.py`
