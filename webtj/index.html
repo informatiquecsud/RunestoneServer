@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="page-topic" content="TigerJython, Schule, Programmieren">
+    <meta name="description" content="WebTigerJython ist eine kostenlose, webbasierte Entwicklungsumgebung für Python,
+     welche sich besonders für Anfänger eignet.">
+    <meta name="keywords" lang=“de“ content="Python, programmieren, turtlegrafik, lehrmittel">
+    <meta name="keywords" lang=“en-us“ content="Python, coding, turtle, IDE">
+    <link rel="icon" href="img/favicon.ico">
+    <title>WebTigerJython</title>
+    <link rel="stylesheet" href="stylesheets/content.css">
+    <link rel="stylesheet" href="stylesheets/menu.css">
+</head>
+<body>
+<!-- Tobias Kohn's Parser -->
+<script type="text/javascript" src="javascripts/tigerjython-parser/tpyparser-opt.js"></script>
+<!-- jQuery -->
+<script type="text/javascript" src="javascripts/jquery/jquery.min.js"></script>
+<!-- Skulpt -->
+<script type="text/javascript" src="javascripts/skulpt/skulpt.min.js"></script>
+<script type="text/javascript" src="javascripts/skulpt/skulpt-stdlib.js"></script>
+<!-- Ace Editor -->
+<script type="text/javascript" src="javascripts/ace/ace.js" charset="utf-8"></script>
+<!-- FileSaver -->
+<script type="text/javascript" src="javascripts/save/fileSaver.min.js" charset="utf-8"></script>
+<!-- Split -->
+<script type="text/javascript" src="javascripts/split/Split.js" charset="utf-8"></script>
+
+<!-- WebTigerJython -->
+<script type="text/javascript" src="javascripts/webtigerjython/functions-compiled.js" charset="utf-8"></script>
+
+<!-- Access statistics -->
+<script type="text/javascript">
+    // ====================================================================
+    // Data Layer: used for analytics with Oracle Infinity (defined by AEM)
+    // ====================================================================
+
+    var DataLayer = {
+        od_dcsid:      'dcs2229o38m83omn1kddiskqm_0005',
+        od_domain:     'statse.webtrendslive.com',
+        op_dcsid:      '',
+        op_domain:     'wtsdc.ethz.ch',
+
+        wt_fpc_domain: '', // Cookie Domain, default ist .ethz.ch
+
+        site:          'ETH Zürich - Homepage', // Site name
+        uri_internal:  '', // interne URL nur ab site root (ohne Sprache)
+        oss_term:      '', // gesuchter Begriff
+        oss_results:   '0', // Anzahl Resultate fuer oss_results
+        oss_engine:    '', // onsite | ethz (default)  --> WT Parameter abfuellen
+        oss_lang:      '', // falls Suche auf Sprache gefiltert: Sprache
+        page_lang:     'de', // Sprache der Seite
+        page_group:    '', // Inhaltsgruppe der Seite (Navigation Level 1)
+        page_subgroup: '',  // Inhaltsuntergruppe der Seite (Navigation Level 2)
+        //visit_ext:   '',   // '0' = internal, '1' = external
+
+        events:        false  // Steuert, ob Events fuer die aktuelle Seite getrackt werden
+    }
+</script>
+
+
+<script src="javascripts/analytics/tracking.datacollector.js"></script>
+
+<!-- Menu bar -->
+<ul>
+    <li id="logo-img">
+        <div class="logo-container">
+            <img class="img" src="img/TigerJython.png">
+        </div>
+    </li>
+    <li id="logo-name">WebTigerJython</li>
+
+    <li onclick="runProgram()" data-translate="start-button-hover" title="Start">
+        <div class="button-container">
+            <img class="img" src="img/start.png">
+        </div>
+    </li>
+    <li onclick="runModalProgram()" data-translate="start-modal-button-hover" title="Start Vollbild">
+        <div class="button-container">
+            <img class="img" src="img/start-modal.png">
+        </div>
+    </li>
+    <li onclick="stopProgram()" data-translate="stop-button-hover" title="Stop">
+        <div class="button-container">
+            <img class="img" src="img/stop.png">
+        </div>
+    </li>
+    <li class="dropdown">
+        <div class="button-container">
+            <img class="img" src="img/menu.png">
+        </div>
+        <div class="dropdown-content">
+            <div id="language-button" class="dropdown-container" onclick="openLanguageSwitcher()">
+                <img id="language-image" class="option-img" src="img/langDE.png">
+                <p id="language-text" data-translate="options-current-language">Deutsch</p>
+                <div id="language-switch" style="display: none;">
+                    <div class="dropdown-container-lang" onclick="setDE()">
+                        <img class="option-img" src="img/langDE.png">
+                        <p>Deutsch</p>
+                    </div>
+                    <div class="dropdown-container-lang" onclick="setFR()">
+                        <img class="option-img" src="img/langFR.png">
+                        <p>Français</p>
+                    </div>
+                    <div class="dropdown-container-lang" onclick="setIT()">
+                        <img class="option-img" src="img/langIT.png">
+                        <p>Italiano</p>
+                    </div>
+                    <div class="dropdown-container-lang" onclick="setEN()">
+                        <img class="option-img" src="img/langEN.png">
+                        <p>English</p>
+                    </div>
+                    <div class="dropdown-container-lang" onclick="setRU()">
+                        <img class="option-img" src="img/langRU.png">
+                        <p>Русский</p>
+                    </div>
+                </div>
+            </div>
+            <div id="fullscreen-button" class="dropdown-container" onclick="toggleFullScreen()">
+                <img id="fullscreen-image" class="option-img" src="img/expand.png">
+                <p id="fullscreen-text" data-translate="options-fullscreen">Vollbild</p>
+                </div>
+            <div id="save-button" class="dropdown-container" >
+                <img class="option-img" src="img/save.png">
+                <p data-translate="options-program-save">Programm speichern</p>
+            </div>
+            <div id="load-button" class="dropdown-container" >
+                <img class="option-img" src="img/open.png">
+                <p data-translate="options-program-load">Programm &ouml;ffnen</p>
+            </div>
+            <div id="info-button" class="dropdown-container" onclick="openInformation()">
+                <img class="option-img" src="img/info.png">
+                <p data-translate="options-information">Informationen</p>
+            </div>
+        </div>
+    </li>
+</ul>
+
+<!-- Editor, Canvas and Output -->
+<div id="content" ondrop="dropHandler(event);" ondragover="dragOverHandler(event);">
+    <div id="editor" class="split split-horizontal"></div>
+    <div id="right-content" class="split split-horizontal">
+        <div id="mycanvas"></div> <!-- for turtle graphics -->
+        <div id="modal">
+            <a data-translate="modal-close-button" title="Schliessen" class="close">X</a>
+            <div id="mycanvas-modal"></div>
+        </div>
+        <div id="output"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="javascripts/webtigerjython/dictionary-compiled.js" charset="utf-8"></script>
+<script type="text/javascript" src="javascripts/webtigerjython/initialization-compiled.js" charset="utf-8"></script>
+
+<script type="text/javascript">
+
+// Detect if Internet Explorer is used and display an error message
+// (We have to detect this here because IE is not able to run it inside an imported script)
+if (navigator.userAgent.indexOf('MSIE ') !== -1 || navigator.userAgent.indexOf('Trident/') !== -1) {
+    // MSIE -> IE 10 or older
+    // Trident -> IE 11
+
+    // Retrieve error message in the browser language
+    let language = navigator.language.toLowerCase();
+    let errorMsg = dictionary.en["error-msg-ie"];
+    if (language.indexOf("de") !== -1) {
+        errorMsg = dictionary.de["error-msg-ie"];
+    } else if (language.indexOf("fr") !== -1) {
+        errorMsg = dictionary.fr["error-msg-ie"];
+    } else if (language.indexOf("it") !== -1) {
+        errorMsg = dictionary.it["error-msg-ie"];
+    }
+    document.getElementsByTagName('body')[0].innerHTML = errorMsg;
+}
+
+</script>
+
+</body>
+</html>
