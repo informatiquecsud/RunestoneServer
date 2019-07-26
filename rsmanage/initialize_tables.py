@@ -43,6 +43,8 @@ if db(db.courses.id > 0).isempty():
                       term_start_date=datetime.date(2019, 9, 1))
     db.courses.insert(course_name='oxocard101', base_course='oxocard101',
                       term_start_date=datetime.date(2019, 9, 1))
+    db.courses.insert(course_name='ipt-prog-3', base_course='ipt-prog-3',
+                      term_start_date=datetime.date(2019, 9, 1))
 else:
     click.echo(message="Your database already has Courses")
 
