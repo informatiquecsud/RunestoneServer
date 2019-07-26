@@ -52,6 +52,7 @@ def _route_book(is_published=True):
 
         # Ensure the base course in the URL agrees with the base course in ``course``. If not, ask the user to select a course.
         if not course or course.base_course != base_course:
+            session.flash = "{} is not the course your are currently in,  switch to or add it to go there".format(base_course)
             redirect(URL(c='default', f='courses'))
 
         # Ensure the user has access to this book.
@@ -89,6 +90,7 @@ def _route_book(is_published=True):
         'published' if is_published else 'build', base_course),
         *request.args[1:])
     if not book_path:
+        logger.error("No Safe Path for {}".format(request.args[1:]))
         raise HTTP(404)
 
     # See if this is static content. By default, the Sphinx static directory names are ``_static`` and ``_images``.
@@ -100,6 +102,7 @@ def _route_book(is_published=True):
     #
     # Make sure the file exists. Otherwise, the rendered "page" will look goofy.
     if not os.path.isfile(book_path):
+        logger.error("Bad Path for {} given {}".format(book_path, request.args[1:]))
         raise HTTP(404)
     response.view = book_path
     chapter = os.path.split(os.path.split(book_path)[0])[1]
@@ -111,10 +114,12 @@ def _route_book(is_published=True):
         is_logged_in = 'true'
         # Get the necessary information to update subchapter progress on the page
         page_divids = db((db.questions.subchapter == subchapter) &
+                         (db.questions.from_source == True) &
                          (db.questions.base_course == base_course)).select(db.questions.name)
         div_counts = {q.name:0 for q in page_divids}
         sid_counts = db((db.questions.subchapter == subchapter) &
                         (db.questions.base_course == base_course) &
+                        (db.questions.from_source == True) &
                         (db.questions.name == db.useinfo.div_id) &
                         (db.useinfo.course_id == auth.user.course_name) &
                         (db.useinfo.sid == auth.user.username)).select(db.useinfo.div_id, distinct=True)

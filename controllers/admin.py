@@ -73,6 +73,7 @@ def index():
 
 @auth.requires_login()
 def doc():
+    response.title = "Documentation"
     return dict(course_id=auth.user.course_name, course=get_course_row(db.courses.ALL))
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
@@ -161,6 +162,7 @@ def assignments():
     """
     This is called for the assignments tab on the instructor interface
     """
+    response.title = "Assignments"
     cur_assignments = db(db.assignments.course == auth.user.course_id).select(orderby=db.assignments.duedate)
     assigndict = OrderedDict()
     for row in cur_assignments:
@@ -193,6 +195,7 @@ def assignments():
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def practice():
+    response.title = "Practice"
     course = db(db.courses.id == auth.user.course_id).select().first()
     course_start_date = course.term_start_date
 
@@ -424,6 +427,7 @@ def _get_qualified_questions(base_course, chapter_label, sub_chapter_label):
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def add_practice_items():
+    response.title = "Add Practice Items"
     course = db(db.courses.course_name == auth.user.course_name).select().first()
     data = json.loads(request.vars.data)
 
@@ -488,6 +492,7 @@ def add_practice_items():
 # This is the primary controller when the instructor goes to the admin page.
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def admin():
+    response.title = "Admin"
     sidQuery = db(db.courses.course_name == auth.user.course_name).select().first()
     courseid = sidQuery.id
     sectionsQuery = db(db.sections.course_id == courseid).select() #Querying to find all sections for that given course_id found above
@@ -578,7 +583,7 @@ def course_students():
 # Called when an instructor clicks on the grading tab
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def grading():
-
+    response.title = "Grading"
     assignments = {}
     assignments_query = db(db.assignments.course == auth.user.course_id).select()
 
@@ -619,7 +624,7 @@ def grading():
     chapters_query = db(db.chapters.course_id == base_course).select()
     for row in chapters_query:
         q_list = []
-        chapter_questions = db((db.questions.chapter == row.chapter_label) & (db.questions.base_course == base_course) & (db.questions.question_type == 'question')).select()
+        chapter_questions = db((db.questions.chapter == row.chapter_label) & (db.questions.base_course == base_course) & (db.questions.question_type != 'page')).select()
         for chapter_q in chapter_questions:
             q_list.append(chapter_q.name)
         chapter_labels[row.chapter_label] = q_list
@@ -777,10 +782,14 @@ def createAssignment():
     response.headers['content-type'] = 'application/json'
     due = None
     logger.debug(type(request.vars['name']))
-
     try:
-        logger.debug("Adding new assignment {} for course".format(request.vars['name'], auth.user.course_id))
-        newassignID = db.assignments.insert(course=auth.user.course_id, name=request.vars['name'], duedate=datetime.datetime.utcnow() + datetime.timedelta(days=7))
+        name=request.vars['name']
+        course=auth.user.course_id
+        logger.debug("Adding new assignment {} for course".format(request.vars['name'], course))
+        name_existsQ = len(db((db.assignments.name == name) & (db.assignments.course == course)).select())
+        if name_existsQ>0:
+            return json.dumps("EXISTS")
+        newassignID = db.assignments.insert(course=course, name=name, duedate=datetime.datetime.utcnow() + datetime.timedelta(days=7))
     except Exception as ex:
         logger.error(ex)
         return json.dumps('ERROR')
@@ -791,6 +800,27 @@ def createAssignment():
         logger.error(ex)
         return json.dumps('ERROR')
 
+@auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
+def renameAssignment():
+    response.headers['content-type'] = 'application/json'
+    try:
+        logger.debug("Renaming {} to {} for course {}.".format(request.vars['original'],request.vars['name'],auth.user.course_id))
+        assignment_id=request.vars['original']
+        name=request.vars['name']
+        course=auth.user.course_id
+        name_existsQ = len(db((db.assignments.name == name) & (db.assignments.course == course)).select())
+        if name_existsQ>0:
+            return json.dumps("EXISTS")
+        db(db.assignments.id == assignment_id).update(name=name)
+    except Exception as ex:
+        logger.error(ex)
+        return json.dumps('ERROR')
+    try:
+        returndict={name: assignment_id}
+        return json.dumps(returndict)
+    except Exception as ex:
+        logger.error(ex)
+        return json.dumps('ERROR')
 
 @auth.requires(lambda: verifyInstructorStatus(auth.user.course_name, auth.user), requires_login=True)
 def questionBank():
@@ -1479,8 +1509,9 @@ def add__or_update_assignment_question():
     if question_type == 'page':
         reading_assignment = 'T'
         # get the count of 'things to do' in this chap/subchap
-        activity_count = db((db.questions.chapter==chapter) &
-                   (db.questions.subchapter==subchapter) &
+        activity_count = db((db.questions.chapter == chapter) &
+                   (db.questions.subchapter == subchapter) &
+                   (db.questions.from_source == 'T') &
                    (db.questions.base_course == base_course)).count()
         try:
             activities_required = int(request.vars.get('activities_required'))
