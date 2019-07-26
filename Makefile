@@ -1,10 +1,31 @@
+USER=root
+REMOTE=$(USER)@$(HOST)
+SSH_OPTIONS=-o 'StrictHostKeyChecking no'
+SSH = ssh $(SSH_OPTIONS) root@$(HOST)
+SERVER_DIR=~/runestone-server
+RSYNC_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no'
+RSYNC=rsync $(RSYNC_OPTIONS)
+TIME = $(shell date +%Y-%m-%d_%Hh%M)
 COMPOSE = docker-compose -f docker-compose.yml -f docker-compose-pgadmin.yml
+
+host.env.build:
+	@if test -z "$(HOST)"; then echo "variable HOST not defined"; exit 1; fi
+	@if test -z "$(POSTGRES_PASSWORD)"; then echo "variable POSTGRES_PASSWORD not defined"; exit 1; fi
+	rm -f host.env
+	echo "VIRTUAL_HOST=$(HOST)" >> host.env
+	echo "LETSENCRYPT_HOST=$(HOST)" >> host.env
+	echo "RUNESTONE_HOST=$(HOST)" >> host.env
+	echo "POSTGRES_PASSWORD=$(POSTGRES_PASSWORD)" >> host.env
+
+push: host.env.build
+	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__
+
+
+ssh:
+	$(SSH)
 
 start:
 	$(COMPOSE) start
-
-ngrok:
-	./ngrok.exe http 80
 
 stop:
 	$(COMPOSE) stop

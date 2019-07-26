@@ -32,4 +32,6 @@ services:
       RUNESTONE_HOST: '${RUNESTONE_HOST}'
       WEB2PY_PASSWORD: 'maison'
       WEB2PY_ADMIN_SECURITY_BYPASS: 'true'
+      RUNESTONE_USE_SERVICES: 'true'
+      RUNESTONE_USE_HTTPS: 'true'
 
