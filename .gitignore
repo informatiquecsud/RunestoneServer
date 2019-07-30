@@ -60,3 +60,4 @@ instructors.csv
 htmlcov
 pgadmin
 configs/*
+.env*
