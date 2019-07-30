@@ -175,6 +175,7 @@ cd "${BOOKS_PATH}"
     (
         cd $book;
         if [ ! -f NOBUILD ]; then
+            info "trying to build book $book"
             runestone build $buildargs deploy
         else
             info "skipping $book due to NOBUILD file"

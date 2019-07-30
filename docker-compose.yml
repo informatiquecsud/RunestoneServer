@@ -4,7 +4,7 @@ services:
   db:
     image: postgres
     environment:
-      POSTGRES_PASSWORD: 'runestone'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
       POSTGRES_USER: 'runestone'
       POSTGRES_DB: 'runestone'
 
@@ -18,10 +18,8 @@ services:
       - db
     depends_on:
     - "db"
-    ports:
-      - "80:80"
     environment:
-      POSTGRES_PASSWORD: 'runestone'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
       POSTGRES_USER: 'runestone'
       POSTGRES_DB: 'runestone'
       WEB2PY_CONFIG: 'development'
@@ -33,5 +31,4 @@ services:
       WEB2PY_PASSWORD: 'maison'
       WEB2PY_ADMIN_SECURITY_BYPASS: 'true'
       RUNESTONE_USE_SERVICES: 'true'
-      RUNESTONE_USE_HTTPS: 'true'
-
+      RUNESTONE_USE_HTTPS: 'false'
