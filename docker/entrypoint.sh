@@ -27,7 +27,7 @@ fi
 
 # For development make sure we are up to date with the latest from github.
 if [ $WEB2PY_CONFIG == "development" ]; then
-    pip install --upgrade git+git://github.com/RunestoneInteractive/RunestoneComponents.git
+    pip install --upgrade git+git://github.com/informatiquecsud/RunestoneComponents.git
 fi
 
 # Initialize the database
@@ -132,9 +132,12 @@ if [ -f "${RUNESTONE_PATH}/configs/students.csv" -a "${RUNESTONE_PATH}/configs/s
     info "Setting up students"
     rsmanage inituser --fromfile ${RUNESTONE_PATH}/configs/students.csv
     info "Students were provided -- disabling signup!"
-    # Disable signup
-    echo -e "\nauth.settings.actions_disabled.append('register')" >> $WEB2PY_PATH/applications/runestone/models/db.py
-    touch sadd.stamp
+    # Disable signup ==> this is the old way to proceed, but really annoying ...
+    # in particular with source control ... line mysteriously added to the db.py
+    # file ..
+
+    # echo -e "\nauth.settings.actions_disabled.append('register')" >> $WEB2PY_PATH/applications/runestone/models/db.py
+    # touch sadd.stamp
 fi
 
 if [ "$WEB2PY_ADMIN_SECURITY_BYPASS" = 'true' ]; then

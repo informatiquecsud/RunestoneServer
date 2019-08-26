@@ -293,30 +293,8 @@ def check_for_donate_or_build(field_dict,id_of_insert):
 if 'auth_user' in db:
     db.auth_user._after_insert.append(check_for_donate_or_build)
 
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
-
-auth.settings.actions_disabled.append('register')
+if os.getenv('RUNESTONE_DISABLE_REGISTER') == 'true' :
+    # instead of echoing this instruction from entrypoint.sh everytime the
+    # runestone docker container is run, use an environment variable saved into
+    # the .env file and loaded automatically by docker
+    auth.settings.actions_disabled.append('register')

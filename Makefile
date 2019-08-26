@@ -1,13 +1,20 @@
 USER=root
+HOST=$(RUNESTONE_HOST)
 REMOTE=$(USER)@$(HOST)
 SSH_OPTIONS=-o 'StrictHostKeyChecking no'
 SSH = ssh $(SSH_OPTIONS) root@$(HOST)
 SERVER_DIR=~/runestone-server
-RSYNC_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no'
+SERVER_COMPONENTS_DIR=/RunestoneComponents
+COMPONENTS_DIR=../RunestoneComponents
+RSYNC_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no' --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
 RSYNC=rsync $(RSYNC_OPTIONS)
 TIME = $(shell date +%Y-%m-%d_%Hh%M)
 
+RUNSTONE_CONTAINER_ID=$(shell docker-compose ps -q runestone)
+
 COMPOSE_PGADMIN = -f docker-compose-pgadmin.yml
+
+WEB2PY_BOOKS = /srv/web2py/applications/runestone/books
 
 # need to run the server-init rule for this to work
 ifdef RUNESTONE_REMOTE
@@ -37,7 +44,7 @@ echo-compose-options:
 	echo "PGADMIN_PASSWORD=$(PGADMIN_PASSWORD)" >> .env
 
 push: .env.build
-	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
+	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=build --exclude=published --exclude=__pycache__ --delete
 	$(SSH) 'echo "RUNESTONE_REMOTE=true" >> $(SERVER_DIR)/.env'
 
 
@@ -84,6 +91,18 @@ runestone-exec-bash:
 	$(COMPOSE) exec runestone bash
 runestone-ps:
 	$(COMPOSE) ps
+runestone-update-components:
+	# $(COMPOSE) exec runestone pip install --upgrade
+	# git+git://github.com/informatiquecsud/RunestoneComponents.git
+	@echo copying runestone components to container $(RUNSTONE_CONTAINER_ID)
+	$(COMPOSE) exec runestone rm -rf $(SERVER_COMPONENTS_DIR)
+	docker cp $(COMPONENTS_DIR) $(RUNSTONE_CONTAINER_ID):$(SERVER_COMPONENTS_DIR)
+	$(COMPOSE) exec runestone pip install --upgrade -e $(SERVER_COMPONENTS_DIR)
+	
+	
+runestone-rebuild-oxocard101:
+	$(COMPOSE) exec runestone bash -c "cd $(WEB2PY_BOOKS)/oxocard101 && runestone build deploy"
+
 
 
 full-restart: stop rm up logsf

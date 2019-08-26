@@ -32,3 +32,4 @@ services:
       WEB2PY_ADMIN_SECURITY_BYPASS: 'true'
       RUNESTONE_USE_SERVICES: 'true'
       RUNESTONE_USE_HTTPS: 'false'
+      RUNESTONE_DISABLE_REGISTER: 'true'
