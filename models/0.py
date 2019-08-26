@@ -29,9 +29,9 @@ settings.login_config = ''
 settings.course_id = 'devcourse'
 settings.plugins = []
 settings.server_type = "http://"
-settings.academy_mode = True
+settings.academy_mode = False
 settings.lti_only_mode = False
-settings.coursera_mode = False
+settings.coursera_mode = True
 
 # Do not control this with hostnames
 config = environ.get("WEB2PY_CONFIG", "NOT SET")
@@ -47,7 +47,8 @@ elif config == "development":
     settings.STRIPE_SECRET_KEY = environ.get('STRIPE_DEV_SECRET_KEY')
 elif config == "test":
     settings.database_uri = environ.get("TEST_DBURL")
-    settings.STRIPE_PUBLISHABLE_KEY = environ.get('STRIPE_TEST_PUBLISHABLE_KEY')
+    settings.STRIPE_PUBLISHABLE_KEY = environ.get(
+        'STRIPE_TEST_PUBLISHABLE_KEY')
     settings.STRIPE_SECRET_KEY = environ.get('STRIPE_TEST_SECRET_KEY')
 else:
     print("To configure web2py you should set up both WEB2PY_CONFIG and")
@@ -55,9 +56,11 @@ else:
     raise ValueError("unknown value for WEB2PY_CONFIG")
 
 # Just for compatibility -- many things use postgresql but web2py removes the ql
-settings.database_uri = settings.database_uri.replace('postgresql://', 'postgres://')
+settings.database_uri = settings.database_uri.replace(
+    'postgresql://', 'postgres://')
 
 
 settings.logger = "web2py.app.runestone"
-settings.sched_logger = settings.logger  # works for production where sending log to syslog but not for dev.
+# works for production where sending log to syslog but not for dev.
+settings.sched_logger = settings.logger
 settings.log_level = logging.DEBUG
