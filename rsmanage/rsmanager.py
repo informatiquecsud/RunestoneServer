@@ -3,6 +3,9 @@ import click
 from sqlalchemy import create_engine
 from pkg_resources import resource_string, resource_filename
 
+from datetime import date
+
+from utils import *
 
 class Config(object):
     def __init__(self):
@@ -166,6 +169,62 @@ def shutdown(config):
     for row in res:
         # result will be form of hostname#pid
         os.kill(int(row[0].split("#")[1]), signal.SIGINT)
+
+
+@cli.command()
+@click.option("--csv", help="path to the csv file to load the class from")
+@click.option("--class-name", help="name of the class to load the students from the csv file into")
+@click.option("--course", default='doi', help="course to add the students into")
+@click.option("--start-date", default='', help="the class must be valid starting from this date")
+@click.option("--end-date", default='', help="the class must be valid up until this date")
+@click.option("--delimiter", default=';', help="CSV field delimiter")
+@click.option("--quotechar", default='"', help="Character used to delimit single fields containing delimiter")
+@pass_config
+def addclass(config, csv, class_name, course, start_date, end_date, delimiter, quotechar):
+    """Loads a class of students from a csv file into the database"""
+    eng = create_engine(config.dburl)
+    # by default, the class is valid from the moment of its creation in the database
+    start_date = start_date or str(date.today())
+
+    new_class_id = create_class(eng, class_name, start_date, end_date)  
+
+
+    # try to open the specified csv file path
+    try:
+        with open(csv, 'r', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=delimiter, quotechar=quotechar)
+            
+            # For now, we don't require the class names to be unique across a
+            # period of validity. We just have to display the valid classes at
+            # each time in the dashboard.
+            class_name_usable = True
+
+            if not class_name_usable:
+                raise ValueError("Unable to use class name '{}'".format(class_name))
+                
+            for student in reader:
+                user_info = translate(student, dict=mapping)
+                userinfo = {}
+                userinfo['username'] = student['E-Mail'].split('@')[0]
+                userinfo['password'] = generate_random_password(length=8)
+                userinfo['first_name'] = student['Prénom']
+                userinfo['last_name'] = student['Nom']
+                userinfo['email'] = student['E-Mail']
+                userinfo['course'] = course
+                userinfo['instructor'] = False
+                userinfo['role_id'] = new_class_id
+
+
+
+                os.environ['RSM_USERINFO'] = json.dumps(userinfo)
+                res = subprocess.call("python web2py.py --no-banner -S runestone -M -R applications/runestone/rsmanage/makeuser.py", shell=True)
+                if res != 0:
+                    click.echo("Failed to create user {} error {} fix your data and try again".format(line[0], res), err=True)
+
+
+    except Exception as e:
+        click.echo(str(e), err=True)
+
 
 #
 #    addcourse

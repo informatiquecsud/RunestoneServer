@@ -298,3 +298,22 @@ if os.getenv('RUNESTONE_DISABLE_REGISTER') == 'true' :
     # runestone docker container is run, use an environment variable saved into
     # the .env file and loaded automatically by docker
     auth.settings.actions_disabled.append('register')
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')
+
+auth.settings.actions_disabled.append('register')

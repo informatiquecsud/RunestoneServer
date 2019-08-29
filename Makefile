@@ -77,6 +77,14 @@ logs:
 logsf:
 	$(COMPOSE) logs -f runestone
 
+
+db-rm:
+	$(COMPOSE) stop db
+	$(COMPOSE) rm -f db
+db-up:
+	$(COMPOSE) up -d db
+db-restart: db-rm db-up
+
 runestone-rm:
 	$(COMPOSE) stop runestone
 	$(COMPOSE) rm -f runestone
@@ -164,8 +172,8 @@ server-runestone-image:
 	$(SSH) 'cd $(SERVER_DIR) && make runestone-image'
 server-runestone-exec-bash:
 	$(SSH) 'cd $(SERVER_DIR) && make runestone-exec-bash'
-server-runestone-full-restart:
-	$(SSH) 'cd $(SERVER_DIR) && make runestone-full-restart'
+server-full-restart:
+	$(SSH) 'cd $(SERVER_DIR) && make full-restart'
 server-logs:
 	$(SSH) 'cd $(SERVER_DIR) && make logs'
 server-logsf:
@@ -178,5 +186,7 @@ server-pgadmin-up:
 	$(SSH) 'cd $(SERVER_DIR) && make pgadmin-up'
 server-pgadmin-rm:
 	$(SSH) 'cd $(SERVER_DIR) && make pgadmin-rm'
+server-db-restart:
+	$(SSH) 'cd $(SERVER_DIR) && make db-restart'
 
 

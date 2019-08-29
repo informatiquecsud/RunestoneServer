@@ -5,7 +5,7 @@ from psycopg2 import IntegrityError
 import click
 import datetime
 
-def createUser(username, password, fname, lname, email, course_name, instructor=False):
+def createUser(username, password, fname, lname, email, course_name, instructor=False, role_id=None):
     cinfo = db(db.courses.course_name == course_name).select().first()
     if not cinfo:
         raise ValueError("Course {} does not exist".format(course_name))
@@ -25,6 +25,11 @@ def createUser(username, password, fname, lname, email, course_name, instructor=
         irole = db(db.auth_group.role == 'instructor').select(db.auth_group.id).first()
         db.auth_membership.insert(user_id=uid, group_id=irole)
         db.course_instructor.insert(course=cinfo.id, instructor=uid)
+
+    # usefull for inserting student into class
+    if role_id:
+        db.auth_membership.insert(user_id=uid, group_id=role)
+
 
     db.commit()
 
@@ -49,7 +54,7 @@ else:
     try:
         createUser(userinfo['username'], userinfo['password'], userinfo['first_name'],
                 userinfo['last_name'], userinfo['email'], userinfo['course'],
-                userinfo['instructor'])
+                userinfo['instructor'], userinfo['role_id'])
     except ValueError as e:
         click.echo('Value Error: ', e)
         sys.exit(1)
