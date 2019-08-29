@@ -6,7 +6,8 @@ SSH = ssh $(SSH_OPTIONS) root@$(HOST)
 SERVER_DIR=~/runestone-server
 SERVER_COMPONENTS_DIR=/RunestoneComponents
 COMPONENTS_DIR=../RunestoneComponents
-RSYNC_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no' --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
+RSYNC_BASE_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no' --progress
+RSYNC_OPTIONS= $(RSYNC_BASE_OTIONS) --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
 RSYNC=rsync $(RSYNC_OPTIONS)
 TIME = $(shell date +%Y-%m-%d_%Hh%M)
 
@@ -189,5 +190,5 @@ server-pgadmin-rm:
 server-db-restart:
 	$(SSH) 'cd $(SERVER_DIR) && make db-restart'
 server-backup:
-	$(SSH) 'tar -cjf backup-$(TIME).tar.bz2 $(SERVER_DIR)'
-	$(RSYNC) $(REMOTE):backup-$(TIME).tar.bz2 ./backup --progress
+	$(SSH) 'tar -cjf backup.tar.bz2 $(SERVER_DIR)'
+	rsync $(RSYNC_BASE_OTIONS) $(REMOTE):backup.tar.bz2 ./backup/backup-$(TIME).tar.bz2 --progress
