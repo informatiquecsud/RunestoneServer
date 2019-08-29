@@ -171,27 +171,100 @@ def shutdown(config):
         os.kill(int(row[0].split("#")[1]), signal.SIGINT)
 
 
+
+
+
 @cli.command()
-@click.option("--csv", help="path to the csv file to load the class from")
+@click.option("--id", help="class id to drop all the students from")
+@pass_config
+def dropclass(config, id):
+    eng = create_engine(config.dburl)
+    
+    res = eng.execute("delete from auth_group_validity where auth_group_id = {};".format(
+        id
+    )
+    res = eng.execute("delete from auth_group where id = {};".format(
+        id
+    )
+
+    if res:
+        click.echo("Class with id {id} dropped successfully".format(id=id))
+    else:
+        click.echo("Error trying to drop class with id {id}".format(
+            id=id
+        ))
+
+
+@cli.command()
+@click.option("--id", help="class id to drop all the students from")
+@pass_config
+def empty_class(config, id):
+    eng = create_engine(config.dburl)
+    sql = '''
+    DELETE FROM auth_user WHERE id IN (SELECT auth_user.id FROM auth_group
+    LEFT JOIN auth_membership ON auth_membership.group_id = auth_group.id
+    LEFT JOIN auth_user ON auth_user.id = auth_membership.user_id
+    WHERE auth_group.id = {id})
+    '''.format(id=id)
+
+    res = eng.execute(sql)
+
+    if res:
+        click.echo("Class with id {id} emptied successfully".format(id=id))
+    else:
+        click.echo("Error trying to empty class with id {id}".format(
+            id=id
+        ))
+
+        
+
+
+@cli.command()
+@pass_config
+def ls_active_classes(config):
+    eng = create_engine(config.dburl)
+    sql_list_active_classes = '''
+    select id, role, start_date, end_date from auth_group
+    left join auth_group_validity ON auth_group_validity.auth_group_id = auth_group.id
+    where start_date <= current_date and end_date >= current_date
+    '''
+
+    res = eng.execute(sql_list_active_classes)
+    for row in res:
+        click.echo("id={id}\t{role}\t{sdate}\t{edate}".format(
+            id=row.id,
+            role=row.role,
+            sdate=row.start_date,
+            edate=row.end_date
+        ))
+
+@cli.command()
+@click.option("--csvfile", help="path to the csv file to load the class from")
 @click.option("--class-name", help="name of the class to load the students from the csv file into")
+@click.option("--class-id", default=0, help="id of the class to load the students from the csv file into")
 @click.option("--course", default='doi', help="course to add the students into")
 @click.option("--start-date", default='', help="the class must be valid starting from this date")
 @click.option("--end-date", default='', help="the class must be valid up until this date")
 @click.option("--delimiter", default=';', help="CSV field delimiter")
 @click.option("--quotechar", default='"', help="Character used to delimit single fields containing delimiter")
 @pass_config
-def addclass(config, csv, class_name, course, start_date, end_date, delimiter, quotechar):
+def addclass(config, csvfile, class_name, class_id, course, start_date, end_date, delimiter, quotechar):
     """Loads a class of students from a csv file into the database"""
     eng = create_engine(config.dburl)
     # by default, the class is valid from the moment of its creation in the database
     start_date = start_date or str(date.today())
 
-    new_class_id = create_class(eng, class_name, start_date, end_date)  
-
+    if class_id == 0:
+        class_id = create_class(eng, class_name, start_date, end_date)
+    else:
+        class_id = int(class_id)
 
     # try to open the specified csv file path
     try:
-        with open(csv, 'r', encoding='utf-8') as csvfile:
+        # il faut mettre l'encoding utf-8-sig pour qu'il n'y ait pas le
+        # caractère BOM pour dire si c'est du little ou du big indian
+        # https://stackoverflow.com/questions/17912307/u-ufeff-in-python-string
+        with open(csvfile, 'r', encoding='utf-8-sig') as csvfile:
             reader = csv.DictReader(csvfile, delimiter=delimiter, quotechar=quotechar)
             
             # For now, we don't require the class names to be unique across a
@@ -203,7 +276,6 @@ def addclass(config, csv, class_name, course, start_date, end_date, delimiter, q
                 raise ValueError("Unable to use class name '{}'".format(class_name))
                 
             for student in reader:
-                user_info = translate(student, dict=mapping)
                 userinfo = {}
                 userinfo['username'] = student['E-Mail'].split('@')[0]
                 userinfo['password'] = generate_random_password(length=8)
@@ -212,15 +284,19 @@ def addclass(config, csv, class_name, course, start_date, end_date, delimiter, q
                 userinfo['email'] = student['E-Mail']
                 userinfo['course'] = course
                 userinfo['instructor'] = False
-                userinfo['role_id'] = new_class_id
+                userinfo['role_id'] = class_id
 
-
-
+                click.echo("{class_name};{fname};{lname};{passwd}".format(
+                    fname=userinfo['first_name'],
+                    lname=userinfo['last_name'],
+                    class_name=class_name,
+                    passwd=userinfo['password'],
+                ))
+                
                 os.environ['RSM_USERINFO'] = json.dumps(userinfo)
                 res = subprocess.call("python web2py.py --no-banner -S runestone -M -R applications/runestone/rsmanage/makeuser.py", shell=True)
                 if res != 0:
                     click.echo("Failed to create user {} error {} fix your data and try again".format(line[0], res), err=True)
-
 
     except Exception as e:
         click.echo(str(e), err=True)

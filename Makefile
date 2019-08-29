@@ -15,7 +15,8 @@ RUNSTONE_CONTAINER_ID=$(shell docker-compose ps -q runestone)
 
 COMPOSE_PGADMIN = -f docker-compose-pgadmin.yml
 
-WEB2PY_BOOKS = /srv/web2py/applications/runestone/books
+RUNESTONE_DIR = /srv/web2py/applications/runestone
+WEB2PY_BOOKS = $(RUNESTONE_DIR)/books
 
 # need to run the server-init rule for this to work
 ifdef RUNESTONE_REMOTE
@@ -45,7 +46,7 @@ echo-compose-options:
 	echo "PGADMIN_PASSWORD=$(PGADMIN_PASSWORD)" >> .env
 
 push: .env.build
-	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=build --exclude=published --exclude=__pycache__ --delete
+	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=build --exclude=published --exclude=__pycache__ --delete --exclude=backup
 	$(SSH) 'echo "RUNESTONE_REMOTE=true" >> $(SERVER_DIR)/.env'
 
 
@@ -112,7 +113,11 @@ runestone-update-components:
 runestone-rebuild-oxocard101:
 	$(COMPOSE) exec runestone bash -c "cd $(WEB2PY_BOOKS)/oxocard101 && runestone build deploy"
 
-
+runestone-load-classes:
+	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy5.csv --course doi --class-name 1GY5"
+	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy7.csv --course doi --class-name 1GY7"
+	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy8.csv --course doi --class-name 1GY8"
+	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy11.csv --course doi --class-name 1GY11"
 
 full-restart: stop rm up logsf
 
@@ -173,6 +178,9 @@ server-runestone-image:
 	$(SSH) 'cd $(SERVER_DIR) && make runestone-image'
 server-runestone-exec-bash:
 	$(SSH) 'cd $(SERVER_DIR) && make runestone-exec-bash'
+server-runestone-load-classes:
+	$(SSH) 'cd $(SERVER_DIR) && make runestone-load-classes'
+
 server-full-restart:
 	$(SSH) 'cd $(SERVER_DIR) && make full-restart'
 server-logs:
@@ -192,3 +200,4 @@ server-db-restart:
 server-backup:
 	$(SSH) 'tar -cjf backup.tar.bz2 $(SERVER_DIR)'
 	rsync $(RSYNC_BASE_OTIONS) $(REMOTE):backup.tar.bz2 ./backup/backup-$(TIME).tar.bz2 --progress
+

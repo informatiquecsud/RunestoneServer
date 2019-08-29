@@ -28,7 +28,7 @@ def createUser(username, password, fname, lname, email, course_name, instructor=
 
     # usefull for inserting student into class
     if role_id:
-        db.auth_membership.insert(user_id=uid, group_id=role)
+        db.auth_membership.insert(user_id=uid, group_id=role_id)
 
 
     db.commit()
@@ -65,4 +65,4 @@ else:
         click.echo('Unexpected Error: ', e)
         sys.exit(3)
 
-    click.echo("Exiting normally")
+    # click.echo("Exiting normally")
