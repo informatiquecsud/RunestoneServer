@@ -20,6 +20,7 @@ private/*
 \#*\#
 TAGS
 cache/*
+__pycache__
 *.log
 *.orig
 .pythonhistory
