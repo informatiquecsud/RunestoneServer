@@ -62,3 +62,4 @@ htmlcov
 pgadmin
 configs/*
 .env*
+backup

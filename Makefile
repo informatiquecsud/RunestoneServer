@@ -188,5 +188,6 @@ server-pgadmin-rm:
 	$(SSH) 'cd $(SERVER_DIR) && make pgadmin-rm'
 server-db-restart:
 	$(SSH) 'cd $(SERVER_DIR) && make db-restart'
-
-
+server-backup:
+	$(SSH) 'tar -cjf backup-$(TIME).tar.bz2 $(SERVER_DIR)'
+	$(RSYNC) $(REMOTE):backup-$(TIME).tar.bz2 ./backup --progress
