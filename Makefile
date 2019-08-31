@@ -46,7 +46,7 @@ echo-compose-options:
 	echo "PGADMIN_PASSWORD=$(PGADMIN_PASSWORD)" >> .env
 
 push: .env.build
-	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=build --exclude=published --exclude=__pycache__ --delete --exclude=backup
+	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=build --exclude=published --exclude=__pycache__ --exclude=backup --exclude=databases
 	$(SSH) 'echo "RUNESTONE_REMOTE=true" >> $(SERVER_DIR)/.env'
 
 
