@@ -33,3 +33,4 @@ services:
       RUNESTONE_USE_SERVICES: 'true'
       RUNESTONE_USE_HTTPS: 'false'
       RUNESTONE_DISABLE_REGISTER: 'true'
+      RUNESTONE_USE_DYNAMIC_PAGES: 'true'
