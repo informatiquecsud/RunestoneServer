@@ -10,6 +10,7 @@ RSYNC_BASE_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no' --progress
 RSYNC_OPTIONS= $(RSYNC_BASE_OTIONS) --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
 RSYNC=rsync $(RSYNC_OPTIONS)
 TIME = $(shell date +%Y-%m-%d_%Hh%M)
+RUNESONE_SERVER_CONTAINER_ID = $(shell docker ps -aqf "name=^runestoneserver_runestone")
 
 RUNSTONE_CONTAINER_ID=$(shell docker-compose ps -q runestone)
 
@@ -118,6 +119,8 @@ runestone-load-classes:
 	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy7.csv --course doi --class-name 1GY7"
 	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy8.csv --course doi --class-name 1GY8"
 	$(COMPOSE) exec runestone bash -c "cd /srv/web2py/ && rsmanage addclass --csvfile $(RUNESTONE_DIR)/data/1gy11.csv --course doi --class-name 1GY11"
+runestone-inspect-errors:
+	docker cp $(RUNESONE_SERVER_CONTAINER_ID):/srv/web2py/applications/runestone/errors .
 
 full-restart: stop rm up logsf
 
@@ -180,6 +183,8 @@ server-runestone-exec-bash:
 	$(SSH) 'cd $(SERVER_DIR) && make runestone-exec-bash'
 server-runestone-load-classes:
 	$(SSH) 'cd $(SERVER_DIR) && make runestone-load-classes'
+server-runestone-sync-errors:
+	$(RSYNC) -raz $(REMOTE):$(SERVER_DIR)/errors ./runestone-errors --progress
 
 server-full-restart:
 	$(SSH) 'cd $(SERVER_DIR) && make full-restart'

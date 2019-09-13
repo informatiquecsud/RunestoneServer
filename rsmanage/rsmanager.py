@@ -182,10 +182,10 @@ def dropclass(config, id):
     
     res = eng.execute("delete from auth_group_validity where auth_group_id = {};".format(
         id
-    )
+    ))
     res = eng.execute("delete from auth_group where id = {};".format(
         id
-    )
+    ))
 
     if res:
         click.echo("Class with id {id} dropped successfully".format(id=id))
@@ -477,7 +477,7 @@ def inituser(config, instructor, fromfile, username, password, first_name, last_
             os.environ['RSM_USERINFO'] = json.dumps(userinfo)
             res = subprocess.call("python web2py.py --no-banner -S runestone -M -R applications/runestone/rsmanage/makeuser.py", shell=True)
             if res != 0:
-                click.echo("Failed to create user {} error {} fix your data and try again".format(line[0], res))
+                click.echo("Failed to create user {} error {} fix your data and try again".format(line[0], res), err=True)
                 exit(1)
     else:
         userinfo = {}

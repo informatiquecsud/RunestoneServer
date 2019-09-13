@@ -63,3 +63,4 @@ pgadmin
 configs/*
 .env*
 backup
+runestone-errors
