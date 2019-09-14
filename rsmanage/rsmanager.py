@@ -116,6 +116,7 @@ def initdb(config, list_tables, reset, fake, force):
     cmd = "python web2py.py --no-banner -S {} -M -R {}/rsmanage/initialize_tables.py {}".format(APP, APP_PATH, list_tables)
     click.echo("Running: {}".format(cmd))
     res = subprocess.call(cmd, shell=True)
+    click.echo("res" + str(res))
 
     if res != 0:
         click.echo(message="Database Initialization Failed")
