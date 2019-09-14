@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  runestone:
+    ports:
+      - "80:80"
+  pgadmin:
+    ports:
+      - "8080:80"
