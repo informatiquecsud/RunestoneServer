@@ -1,16 +1,28 @@
-USER=root
-HOST=$(RUNESTONE_HOST)
-REMOTE=$(USER)@$(HOST)
-SSH_OPTIONS=-o 'StrictHostKeyChecking no'
-SSH = ssh $(SSH_OPTIONS) root@$(HOST)
+
+SSH_USER=root
+SSH_PORT=22
+SSH_HOST=$(RUNESTONE_HOST)
+ENV_NAME=ovh
+
+ifdef USE_HIDORA
+	SSH_USER=$(HIDORA_SSH_USER)
+	SSH_PORT=$(HIDORA_SSH_PORT)
+	SSH_HOST=$(HIDORA_SSH_HOST)
+	ENV_NAME=hidora
+endif
+
+REMOTE=$(SSH_USER)@$(SSH_HOST)
+SSH_OPTIONS=-o 'StrictHostKeyChecking no' -p $(SSH_PORT)
+SSH = ssh $(SSH_OPTIONS) $(SSH_USER)@$(SSH_HOST)
 SERVER_DIR=~/runestone-server
 SERVER_COMPONENTS_DIR=/RunestoneComponents
 COMPONENTS_DIR=../RunestoneComponents
-RSYNC_BASE_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no' --progress
-RSYNC_OPTIONS= $(RSYNC_BASE_OTIONS) --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
+RSYNC_BASE_OPTIONS= -e 'ssh -o StrictHostKeyChecking=no -p $(SSH_PORT)' --progress
+RSYNC_OPTIONS= $(RSYNC_BASE_OPTIONS) --exclude=.git --exclude=venv --exclude=ubuntu --exclude=__pycache__ --delete
 RSYNC=rsync $(RSYNC_OPTIONS)
 TIME = $(shell date +%Y-%m-%d_%Hh%M)
 RUNESONE_SERVER_CONTAINER_ID = $(shell docker ps -aqf "name=^runestoneserver_runestone")
+DOTENV_FILE = .env.$(ENV_NAME)
 
 RUNSTONE_CONTAINER_ID=$(shell docker-compose ps -q runestone)
 
@@ -20,35 +32,46 @@ RUNESTONE_DIR = /srv/web2py/applications/runestone
 WEB2PY_BOOKS = $(RUNESTONE_DIR)/books
 
 # need to run the server-init rule for this to work
+COMPOSE_OPTIONS = -f docker-compose-local.yml
 ifdef RUNESTONE_REMOTE
 	COMPOSE_OPTIONS = -f docker-compose-production.yml
-else
-	COMPOSE_OPTIONS = -f docker-compose-local.yml
 endif
+
+ifdef USE_HIDORA
+	COMPOSE_OPTIONS =  -f docker-compose-production.yml -f docker-compose-production-hidora.yml
+endif
+
 
 COMPOSE = docker-compose -f docker-compose.yml $(COMPOSE_PGADMIN) $(COMPOSE_OPTIONS)
 
 # shows hot to load the env vars defined in .env
 howto-load-dotenv:
-	@echo 'set -a; source .env; set +a'
+	@echo 'set -a; source $(DOTENV_FILE); set +a'
 
 echo-compose-options:
 	@echo 'Compose options is: ' $(COMPOSE_OPTIONS)
 
+# TODO: This .env.build stuff has to be eventually wiped off, an other way of doing it
+# should be found ...
 .env.build:
-	@if test -z "$(HOST)"; then echo "variable HOST not defined"; exit 1; fi
+	@if test -z "$(RUNESTONE_HOST)"; then echo "variable HOST not defined"; exit 1; fi
 	@if test -z "$(POSTGRES_PASSWORD)"; then echo "variable POSTGRES_PASSWORD not defined"; exit 1; fi
 	@if test -z "$(WEB2PY_PASSWORD)"; then echo "variable WEB2PY_PASSWORD not defined"; exit 1; fi
 	@if test -z "$(PGADMIN_PASSWORD)"; then echo "variable PGADMIN_PASSWORD not defined"; exit 1; fi
-	rm -f .env
-	echo "RUNESTONE_HOST=$(HOST)" >> .env
-	echo "POSTGRES_PASSWORD=$(POSTGRES_PASSWORD)" >> .env
-	echo "WEB2PY_PASSWORD=$(WEB2PY_PASSWORD)" >> .env
-	echo "PGADMIN_PASSWORD=$(PGADMIN_PASSWORD)" >> .env
+	rm -f $(DOTENV_FILE)
+	echo "RUNESTONE_HOST=$(RUNESTONE_HOST)" >> $(DOTENV_FILE)
+	echo "POSTGRES_PASSWORD=$(POSTGRES_PASSWORD)" >> $(DOTENV_FILE)
+	echo "WEB2PY_PASSWORD=$(WEB2PY_PASSWORD)" >> $(DOTENV_FILE)
+	echo "PGADMIN_PASSWORD=$(PGADMIN_PASSWORD)" >> $(DOTENV_FILE)
+	echo "HIDORA_SSH_USER=$(HIDORA_SSH_USER)" >> $(DOTENV_FILE)
+	echo "HIDORA_SSH_HOST=$(HIDORA_SSH_HOST)" >> $(DOTENV_FILE)
+	echo "HIDORA_SSH_PORT=$(HIDORA_SSH_PORT)" >> $(DOTENV_FILE)
+	echo "USE_HIDORA=$(USE_HIDORA)" >> $(DOTENV_FILE)
 
 push: .env.build
 	$(RSYNC) -raz . $(REMOTE):$(SERVER_DIR) --progress --exclude=.git --exclude=venv --exclude=ubuntu --exclude=build --exclude=published --exclude=__pycache__ --exclude=backup --exclude=databases
-	$(SSH) 'echo "RUNESTONE_REMOTE=true" >> $(SERVER_DIR)/.env'
+	$(SSH) 'cd $(SERVER_DIR) && echo "RUNESTONE_REMOTE=true" >> $(DOTENV_FILE)'
+	$(SSH) 'cd $(SERVER_DIR) && cp -f $(DOTENV_FILE) .env'
 
 
 ssh:
@@ -70,6 +93,7 @@ ps:
 
 up:
 	$(COMPOSE) up -d
+
 top:
 	$(COMPOSE) top
 dblogs:
@@ -99,7 +123,7 @@ runestone-restart:
 	$(COMPOSE) rm -f runestone
 	$(COMPOSE) up -d runestone
 runestone-exec-bash:
-	$(COMPOSE) exec runestone bash
+	$(COMPOSE) exec -T runestone bash
 runestone-ps:
 	$(COMPOSE) ps
 runestone-update-components:
@@ -142,6 +166,7 @@ pgadmin-up:
 
 server-init:
 	$(SSH) 'echo "export RUNESTONE_REMOTE=true" >> ~/.bashrc'
+	$(SSH) 'echo "export USE_HIDORA=true" >> ~/.bashrc'
 
 
 server-proxy-start:
@@ -157,7 +182,7 @@ server-proxy-bash:
 server-proxy-ps:
 	$(SSH) 'cd $(SERVER_DIR)/nginx-letsencrypt && docker-compose ps'
 server-proxy-conf:
-	$(SSH) 'cd $(SERVER_DIR)/nginx-letsencrypt && docker-compose exec nginx-proxy cat /etc/nginx/conf.d/default.conf'
+	$(SSH) 'cd $(SERVER_DIR)/nginx-letsencrypt && docker-compose exec -T nginx-proxy cat /etc/nginx/conf.d/default.conf'
 
 	
 
