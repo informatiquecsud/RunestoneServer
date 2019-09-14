@@ -51,12 +51,9 @@ RUN apt-get update && \
     eatmydata apt-get install -y --no-install-recommends \
     gcc \
     git \
-    unzip \
-    vim \
-    less \
     libfreetype6-dev postgresql-common postgresql postgresql-contrib \
     libpq-dev libxml2-dev libxslt1-dev \
-    rsync wget nginx && \
+    rsync nginx && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # The rest could be done and ran under a regular (well, staff for installing under /usr/local) user
